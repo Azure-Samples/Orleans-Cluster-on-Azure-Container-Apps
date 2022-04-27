@@ -1,0 +1,45 @@
+name: Create the Azure resources
+
+on:
+  push:
+    branches:
+    - provision
+
+env:
+  RESOURCE_GROUP_NAME: orleansoncontainerapps
+  REGION: eastus
+  
+jobs:
+  
+  provision:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout to the branch
+      uses: actions/checkout@v2
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AzureSPN }}
+
+    - name: Create resource group
+      uses: azure/CLI@v1
+      with:
+        inlineScript: >
+          echo "Creating resource group in Azure"
+
+          az group create -l ${{ env.REGION }} -n ${{ env.RESOURCE_GROUP_NAME }}
+
+    - name: Creating resources
+      uses: azure/CLI@v1
+      with:
+        inlineScript: >
+          echo "Creating resources"
+
+          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug
+
+    - name: logout
+      run: >
+        az logout

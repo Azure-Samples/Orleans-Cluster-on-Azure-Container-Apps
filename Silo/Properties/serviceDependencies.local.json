@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "storage1": {
+      "secretStore": null,
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/helloclusterstorage",
+      "type": "storage.azure",
+      "connectionId": "AzureStorage"
+    }
+  }
+}
