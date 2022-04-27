@@ -56,7 +56,7 @@ By the end of this section you'll have a distributed Orleans cluster running in 
 2. Create an Azure Service Principal using the Azure CLI. 
 
 ```bash
-$subscriptionId=$(az account show --query id --output)
+$subscriptionId=$(az account show --query id --output tsv)
 az ad sp create-for-rbac --sdk-auth --name OrleansAcaSample --role contributor --scopes /subscriptions/$subscriptionId
 ```
 
