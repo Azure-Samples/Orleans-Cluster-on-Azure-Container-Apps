@@ -233,6 +233,8 @@ Remember that earlier when we described each service, we mentioned the `workerse
 
 Azure Container Apps offers great scaling capabilities, that when coupled with Orleans, enable you to scale effortlessly up and down on demand. The next section will introduce you to these features and how they work together to enable scalable solutions with Orleans and Azure Container Apps. 
 
+
+
 ## Orleans Grain lifetimes
 
 In the example code, there are two Orleans Grain interfaces and implementations. One of these, the `SensorTwinGrain`, represents a canonical use-case for Orleans applications - IoT (Internet of Things) Digital Twin scenarios. Orleans' low latency is fantastic for these types of scenarios. In this phase of the tutorial, we'll demonstrate how Orleans automatically cleans up the Grains in the cluster's Silos when they go unused for a set period of time. 
@@ -244,6 +246,4 @@ public class SensorTwinGrain : Grain, ISensorTwinGrain
 }
 ```
 
-
-
-The `SensorTwinGrain` is decorated with CollectionAgeLimitAttribute](https://docs.microsoft.com/dotnet/api/orleans.configuration.collectionagelimitattribute?view=orleans-3.0), useful when you want to explicitly control how long a Grain is maintained in memory when it isn't actively being called by any other Grains in the cluster or by any clients. 
+The `SensorTwinGrain` is decorated with [CollectionAgeLimitAttribute](https://docs.microsoft.com/dotnet/api/orleans.configuration.collectionagelimitattribute?view=orleans-3.0), useful when you want to explicitly control how long a Grain is maintained in memory when it isn't actively being called by any other Grains in the cluster or by any clients. In the next section we'll take a look at how you can turn off the client simulation and observe Orleans clean up the unused Grains in the cluster. Then, we'll scale the cluster out, and see what happens when a single client calls a distributed Orleans cluster. Finally, we'll scale out the front-end simulation and demonstrate how Azure Container Apps is a scalable compute layer for your Orleans infrastructure. 
