@@ -56,7 +56,8 @@ By the end of this section you'll have a distributed Orleans cluster running in 
 2. Create an Azure Service Principal using the Azure CLI. 
 
 ```bash
-az ad sp create-for-rbac --sdk-auth --role contributor --scopes /subscription/<your-subscription-id>
+$subscriptionId=$(az account show --query id --output)
+az ad sp create-for-rbac --sdk-auth --name OrleansAcaSample --role contributor --scopes /subscriptions/$subscriptionId
 ```
 
 3. Copy the JSON written to the screen to your clipboard. 
@@ -247,3 +248,4 @@ public class SensorTwinGrain : Grain, ISensorTwinGrain
 ```
 
 The `SensorTwinGrain` is decorated with [CollectionAgeLimitAttribute](https://docs.microsoft.com/dotnet/api/orleans.configuration.collectionagelimitattribute?view=orleans-3.0), useful when you want to explicitly control how long a Grain is maintained in memory when it isn't actively being called by any other Grains in the cluster or by any clients. In the next section we'll take a look at how you can turn off the client simulation and observe Orleans clean up the unused Grains in the cluster. Then, we'll scale the cluster out, and see what happens when a single client calls a distributed Orleans cluster. Finally, we'll scale out the front-end simulation and demonstrate how Azure Container Apps is a scalable compute layer for your Orleans infrastructure. 
+
