@@ -1,17 +1,18 @@
 {
   "profiles": {
-    "HelloOrleans.Silo": {
+    "Scaler": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:5000",
+      "applicationUrl": "http://localhost:5122;https://localhost:7122",
       "dotnetRunMessages": true
     },
     "Docker (1)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "publishAllPorts": true
+      "publishAllPorts": true,
+      "useSSL": true
     }
   }
 }

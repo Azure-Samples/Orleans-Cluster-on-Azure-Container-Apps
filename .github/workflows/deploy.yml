@@ -21,6 +21,9 @@ env:
   WORKERSERVICE_CLIENT_DOCKER_FILE_PATH: Clients.WorkerService/Dockerfile
   WORKERSERVICE_CLIENT_IMAGE_NAME: workerserviceclient
 
+  SCALER_DOCKER_FILE_PATH: Scaler/Dockerfile
+  SCALER_IMAGE_NAME: scaler
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -74,6 +77,13 @@ jobs:
         push: true
         tags: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.WORKERSERVICE_CLIENT_DOCKER_FILE_PATH }}
+
+    - name: Build and push Scaler image to registry
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+        file: ${{ env.SCALER_DOCKER_FILE_PATH }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -144,6 +154,16 @@ jobs:
           az containerapp registry set -n workerserviceclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
 
           az containerapp update -n workerserviceclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Deploy Scaler
+      uses: azure/CLI@v1
+      with:
+        inlineScript: >
+          echo "Deploying Scaler"
+          
+          az containerapp registry set -n scaler -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
+
+          az containerapp update -n scaler -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
 
     - name: logout
       run: >

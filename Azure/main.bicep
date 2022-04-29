@@ -36,7 +36,20 @@ module storage 'storage.bicep' = {
   }
 }
 
-module silo 'container-app-no-ingress.bicep' = {
+module scaler 'scaler.bicep' = {
+  name: 'scaler'
+  params: {
+    location: location
+    name: 'scaler'
+    containerAppEnvironmentId: env.outputs.id
+    registry: acr.name
+    registryPassword: acr.listCredentials().passwords[0].value
+    registryUsername: acr.listCredentials().username
+    envVars : shared_config
+  }
+}
+
+module silo 'silo.bicep' = {
   name: 'silo'
   params: {
     location: location
@@ -45,12 +58,12 @@ module silo 'container-app-no-ingress.bicep' = {
     registry: acr.name
     registryPassword: acr.listCredentials().passwords[0].value
     registryUsername: acr.listCredentials().username
-    maxReplicas: 1
     envVars : shared_config
+    scalerUrl: scaler.outputs.fqdn
   }
 }
 
-module dashboard 'container-app-with-ingress.bicep' = {
+module dashboard 'dashboard.bicep' = {
   name: 'dashboard'
   params: {
     location: location
@@ -66,7 +79,7 @@ module dashboard 'container-app-with-ingress.bicep' = {
   }
 }
 
-module minimalapiclient 'container-app-with-ingress.bicep' = {
+module minimalapiclient 'minimalapiclient.bicep' = {
   name: 'minimalapiclient'
   params: {
     location: location
@@ -82,7 +95,7 @@ module minimalapiclient 'container-app-with-ingress.bicep' = {
   }
 }
 
-module workerserviceclient 'container-app-no-ingress.bicep' = {
+module workerserviceclient 'workerserviceclient.bicep' = {
   name: 'workerserviceclient'
   params: {
     location: location
