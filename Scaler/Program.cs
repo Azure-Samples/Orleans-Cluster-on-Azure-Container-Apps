@@ -17,7 +17,7 @@ builder.Host.UseOrleans(siloBuilder =>
         {
             options.SiloName = "Scaler";
         })
-        .ConfigureEndpoints(siloPort: 11_113, gatewayPort: 30_002)
+        .ConfigureEndpoints(siloPort: 11_111, gatewayPort: 30_000)
         .UseAzureStorageClustering(options => options.ConfigureTableServiceClient(builder.Configuration.GetValue<string>("StorageConnectionString")))
         ;
 });
