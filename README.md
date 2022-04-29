@@ -8,12 +8,8 @@ Throughout this tutorial you'll complete the following tasks:
 
 1. Use GitHub Actions, Bicep, and the Azure CLI to deploy a cloud-native .NET application to Azure Container Apps.
 2. Monitor the app in real-time using the Orleans Dashboard.
-3. Simulate load by increasing the number of Worker services in the Azure portal.
-4. Scale the back end out.
-5. Scale the simulation back to zero client load.
-6. Scale the back end down to a minimal load.
 
-
+Once the cluster is deployed, you can experiment with adding multiple revisions to simulate load on the cluster. 
 
 ## What you'll learn
 
