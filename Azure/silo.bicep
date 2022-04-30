@@ -45,6 +45,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
         maxReplicas: maxReplicas
         rules: [
           {
+            name: 'scaler'
             http: {
               metadata: {
                 scalerAddress: 'http://${scalerUrl}'
