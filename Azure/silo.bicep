@@ -46,12 +46,13 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
         rules: [
           {
             name: 'scaler'
-            type: 'external'
-            metadata: {
-              scalerAddress: 'http://${scalerUrl}'
-              graintype: ''
-              siloNameFilter: 'sensortwin'
-              upperbound: '300'
+            http: {
+              metadata: {
+                scalerAddress: 'http://${scalerUrl}'
+                graintype: 'sensortwin'
+                siloNameFilter: 'silo'
+                upperbound: '300'
+              }
             }
           }
         ]

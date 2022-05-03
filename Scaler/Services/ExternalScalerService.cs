@@ -8,15 +8,16 @@ namespace Scaler.Services
     public class ExternalScalerService : Externalscaler.ExternalScaler.ExternalScalerBase
     {
         ILogger<ExternalScalerService> _logger;
+        public IClusterClient OrleansClusterClient { get; set; }
         IManagementGrain _managementGrain;
-        IGrainFactory _grainFactory;
         string _metricName = "grainThreshold";
 
-        public ExternalScalerService(IGrainFactory grainFactory, ILogger<ExternalScalerService> logger)
+        public ExternalScalerService(ILogger<ExternalScalerService> logger, IClusterClient orleansClusterClient)
         {
-            _grainFactory = grainFactory;
-            _managementGrain = _grainFactory.GetGrain<IManagementGrain>(0);
             _logger = logger;
+            OrleansClusterClient = orleansClusterClient;
+            Task.Run(async () => await OrleansClusterClient.Connect());
+            _managementGrain = OrleansClusterClient.GetGrain<IManagementGrain>(0);
         }
 
         public override async Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request, ServerCallContext context)
