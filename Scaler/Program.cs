@@ -6,6 +6,7 @@ using Scaler.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConnectOrleansClient();
 builder.Services.AddGrpc();
+builder.Services.AddWebAppApplicationInsights("Scaler");
 
 var app = builder.Build();
 

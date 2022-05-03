@@ -1,16 +1,5 @@
 param location string = resourceGroup().location
 
-var shared_config = [
-  {
-    name: 'ASPNETCORE_ENVIRONMENT'
-    value: 'Development'
-  }
-  {
-    name: 'StorageConnectionString'
-    value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
-  }
-]
-
 resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
   name: toLower('${resourceGroup().name}acr')
   location: location
@@ -35,6 +24,25 @@ module storage 'storage.bicep' = {
     location: location
   }
 }
+
+var shared_config = [
+  {
+    name: 'ASPNETCORE_ENVIRONMENT'
+    value: 'Development'
+  }
+  {
+    name: 'StorageConnectionString'
+    value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: env.outputs.appInsightsInstrumentationKey
+  }
+  {
+    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+    value: env.outputs.appInsightsConnectionString
+  }
+]
 
 module scaler 'scaler.bicep' = {
   name: 'scaler'

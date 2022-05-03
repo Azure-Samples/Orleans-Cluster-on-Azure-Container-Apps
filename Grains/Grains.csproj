@@ -24,8 +24,4 @@
 	  <Orleans_CodeGenInputs Remove="SensorTwinGrain.cs" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Orleans_CodeGenInputs Remove="DontPlaceMeOnTheDashboardSiloDirector.cs" />
-	</ItemGroup>
-
 </Project>

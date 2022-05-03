@@ -1,19 +1,8 @@
-using Grains;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime;
-using Orleans.Runtime.Placement;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddSingletonNamedService<
-        PlacementStrategy, DontPlaceMeOnTheDashboardStrategy>(
-            nameof(DontPlaceMeOnTheDashboardSiloDirector));
-
-builder.Services.AddSingletonKeyedService<
-    Type, IPlacementDirector, DontPlaceMeOnTheDashboardSiloDirector>(
-        typeof(DontPlaceMeOnTheDashboardStrategy));
 
 builder.Host.UseOrleans(siloBuilder =>
 {
@@ -31,6 +20,8 @@ builder.Host.UseOrleans(siloBuilder =>
         .UseAzureStorageClustering(options => options.ConfigureTableServiceClient(builder.Configuration.GetValue<string>("StorageConnectionString")))
         ;
 });
+
+builder.Services.AddWebAppApplicationInsights("Silo");
 
 var app = builder.Build();
 

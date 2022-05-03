@@ -1,23 +1,12 @@
-using Abstractions;
 using Grains;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime;
-using Orleans.Runtime.Placement;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseOrleans(siloBuilder =>
 {
-    builder.Services.AddSingletonNamedService<
-        PlacementStrategy, DontPlaceMeOnTheDashboardStrategy>(
-            nameof(DontPlaceMeOnTheDashboardSiloDirector));
-
-    builder.Services.AddSingletonKeyedService<
-        Type, IPlacementDirector, DontPlaceMeOnTheDashboardSiloDirector>(
-            typeof(DontPlaceMeOnTheDashboardStrategy));
-
     siloBuilder
         .Configure<ClusterOptions>(options =>
         {
@@ -37,6 +26,10 @@ builder.Host.UseOrleans(siloBuilder =>
                     ? builder.Configuration.GetValue<bool>("HideTrace") 
                     : true);
 });
+builder.Services.AddWebAppApplicationInsights("Dashboard");
+
+// uncomment this if you dont mind hosting grains in the dashboard
+// builder.Services.DontHostGrainsHere();
 
 var app = builder.Build();
 

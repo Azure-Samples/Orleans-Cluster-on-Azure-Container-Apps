@@ -3,7 +3,7 @@ using Orleans.Placement;
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 
-namespace Grains
+namespace Infrastructure
 {
     public class DontPlaceMeOnTheDashboardSiloDirector : IPlacementDirector
     {
