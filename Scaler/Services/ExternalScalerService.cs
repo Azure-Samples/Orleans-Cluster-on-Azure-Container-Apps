@@ -48,7 +48,7 @@ namespace Scaler.Services
             resp.MetricSpecs.Add(new MetricSpec
             {
                 MetricName = _metricName,
-                TargetSize = 10
+                TargetSize = 1
             });
 
             return Task.FromResult(resp);
