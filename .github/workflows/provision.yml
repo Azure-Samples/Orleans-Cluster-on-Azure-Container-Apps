@@ -6,8 +6,7 @@ on:
     - provision
 
 env:
-  RESOURCE_GROUP_NAME: orleansonaca
-  REGION: eastus
+  RESOURCE_GROUP_NAME: orleansonazurecontainerapps
   
 jobs:
   

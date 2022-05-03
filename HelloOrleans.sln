@@ -25,6 +25,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scaler", "Scaler\Scaler.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{46FE3569-9F01-4883-9A47-FFA7F17C7835}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bicep", "Bicep", "{FB9AF459-6C74-4A6F-95F6-ADC65F1B00D5}"
+	ProjectSection(SolutionItems) = preProject
+		Azure\dashboard.bicep = Azure\dashboard.bicep
+		Azure\environment.bicep = Azure\environment.bicep
+		Azure\main.bicep = Azure\main.bicep
+		Azure\minimalapiclient.bicep = Azure\minimalapiclient.bicep
+		Azure\scaler.bicep = Azure\scaler.bicep
+		Azure\silo.bicep = Azure\silo.bicep
+		Azure\storage.bicep = Azure\storage.bicep
+		Azure\workerserviceclient.bicep = Azure\workerserviceclient.bicep
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +78,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FB9AF459-6C74-4A6F-95F6-ADC65F1B00D5} = {5D6267A9-46FB-457D-8BFE-FBEC0CE869A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EAD99FB-C478-4BB6-B652-0075D55BF04E}

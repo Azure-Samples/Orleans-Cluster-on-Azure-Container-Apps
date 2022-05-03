@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddWebAppApplicationInsights("Minimal API Client");
 
 // if debugging, wait for the back-end services to start before connecting
 if(Debugger.IsAttached)

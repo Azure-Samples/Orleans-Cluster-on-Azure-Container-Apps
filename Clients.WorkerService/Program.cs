@@ -6,6 +6,7 @@ using Orleans.Hosting;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
+        services.AddWorkerAppApplicationInsights("Worker Service Client");
         services.ConnectOrleansClient();
         services.AddHostedService<Worker>();
     })
