@@ -29,11 +29,13 @@ namespace Scaler.Services
             var siloNameFilter = request.ScaledObjectRef.ScalerMetadata["siloNameFilter"];
 
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
+            long metricValue = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
+            _logger.LogInformation($"Returning {metricValue} from GetMetrics.MetricsValue");
 
             response.MetricValues.Add(new MetricValue
             {
                 MetricName = _metricName,
-                MetricValue_ = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0
+                MetricValue_ = metricValue
             });
 
             return response;
@@ -69,7 +71,7 @@ namespace Scaler.Services
                     });
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(30));
             }
         }
 
