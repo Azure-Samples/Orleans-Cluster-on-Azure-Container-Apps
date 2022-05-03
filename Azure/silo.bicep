@@ -49,7 +49,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
             custom: {
               type: 'external'
               metadata: {
-                scalerAddress: 'http://${scalerUrl}'
+                scalerAddress: '${scalerUrl}:80'
                 graintype: 'sensortwin'
                 siloNameFilter: 'silo'
                 upperbound: '300'
