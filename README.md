@@ -9,9 +9,6 @@ Throughout this tutorial you'll complete the following tasks:
 1. Use GitHub Actions, Bicep, and the Azure CLI to deploy a cloud-native .NET application to Azure Container Apps.
 2. Monitor the app in real-time using the Orleans Dashboard.
 3. Simulate load by increasing the number of Worker services in the Azure portal.
-4. Scale the back end out.
-5. Scale the simulation back to zero client load.
-6. Scale the back end down to a minimal load.
 
 
 
@@ -41,12 +38,12 @@ You'll need an Azure subscription and a very small set of tools and skills to ge
 
 ## Setup
 
-By the end of this section you'll have a distributed Orleans cluster running in Azure. This setup process consists of three steps, and should take you around 15 minutes. 
+By the end of this section you'll have a distributed Orleans cluster running in Azure. This setup process consists of two steps, and should take you around 15 minutes. 
 
 1. Use the Azure CLI to create an Azure Service Principal, then store that principal's JSON output to a GitHub secret so the GitHub Actions CI/CD process can log into your Azure subscription and deploy the code.
-2. Edit the ` provision.yml` workflow file that is used to provision the Azure resources and push that into a new `provision` branch, triggering GitHub Actions to execute the `provision` workflow step, which logs into Azure and creates the resources. 
-3. Edit the ` deploy.yml` workflow file and push the changes into a new `deploy` branch, triggering GitHub Actions to build the .NET projects into containers and push those containers into a new Azure Container Apps Environment. 
-4. Experiment with Orleans in Azure Container Apps!
+2. Edit the ` deploy.yml` workflow file and push the changes into a new `deploy` branch, triggering GitHub Actions to build the .NET projects into containers and push those containers into a new Azure Container Apps Environment. 
+
+Now you can do some experiments with Orleans in Azure Container Apps!
 
 
 

@@ -6,7 +6,11 @@ on:
     - deploy
 
 env:
-  RESOURCE_GROUP_NAME: orleanonaca
+  
+  # alphanumeric string under 14 characters
+  RESOURCE_GROUP_NAME: orleans-cluster-on-container-apps
+
+  # specify your preferred region
   REGION: eastus
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
