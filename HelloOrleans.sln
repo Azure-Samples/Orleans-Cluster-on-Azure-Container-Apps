@@ -18,12 +18,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5D6267A9-46FB-457D-8BFE-FBEC0CE869A3}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\deploy.yml = .github\workflows\deploy.yml
-		.github\workflows\provision.yml = .github\workflows\provision.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scaler", "Scaler\Scaler.csproj", "{F2B10436-72B9-40EF-8E8E-80DDBFCB1207}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{46FE3569-9F01-4883-9A47-FFA7F17C7835}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{46FE3569-9F01-4883-9A47-FFA7F17C7835}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bicep", "Bicep", "{FB9AF459-6C74-4A6F-95F6-ADC65F1B00D5}"
 	ProjectSection(SolutionItems) = preProject
