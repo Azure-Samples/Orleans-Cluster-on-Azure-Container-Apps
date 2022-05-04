@@ -28,28 +28,28 @@ namespace Scaler.Services
             var grainType = request.ScaledObjectRef.ScalerMetadata["graintype"];
             var siloNameFilter = request.ScaledObjectRef.ScalerMetadata["siloNameFilter"];
             var upperbound = Convert.ToInt32(request.ScaledObjectRef.ScalerMetadata["upperbound"]);
-
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
+            var action = "Unspecified";
             long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
             long metricValue = 0;
-            var action = "scale in";
 
-            if (grainsPerSilo < (2 * upperbound)) // scale in
-            {
-                metricValue = fnd.SiloCount - 1;
-            }
-            else if (grainsPerSilo < upperbound)  // remain
+            if (grainsPerSilo < (2 * upperbound)) // remain
             {
                 metricValue = fnd.SiloCount;
-                action = "remain";
+                action = "remain at";
+            }
+            else if (grainsPerSilo < upperbound)  // scale in
+            {
+                metricValue = fnd.SiloCount - 1;
+                action = "scale in to";
             }
             else if (grainsPerSilo >= upperbound) // scale out
             {
                 metricValue = fnd.SiloCount + 1;
-                action = "scale out";
+                action = "scale out to";
             }
 
-            _logger.LogInformation($"Returning {metricValue} from GetMetrics.MetricsValue. Time to {action}.");
+            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Action: {action} {metricValue}.");
 
             response.MetricValues.Add(new MetricValue
             {
