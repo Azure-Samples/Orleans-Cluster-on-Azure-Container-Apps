@@ -6,7 +6,7 @@ on:
     - deploy
 
 env:
-  CONTAINER_APP_RESOURCE_GROUP_NAME: orleansonazurecontainerapps
+  RESOURCE_GROUP_NAME: orleanonaca
   REGION: eastus
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
@@ -38,21 +38,12 @@ jobs:
       with:
         creds: ${{ secrets.AzureSPN }}
 
-    - name: Installing Container Apps extension
-      uses: azure/CLI@v1
-      with:
-        inlineScript: >
-          echo "Installing containerapp extension"
-
-          az config set extension.use_dynamic_install=yes_without_prompt
-
-          az extension add --name containerapp --yes
-
     - name: Create resource group
       uses: azure/CLI@v1
       with:
         inlineScript: >
           echo "Creating resource group in Azure"
+          echo "Executing 'az group create -l ${{ env.REGION }} -n ${{ env.RESOURCE_GROUP_NAME }}'"
 
           az group create -l ${{ env.REGION }} -n ${{ env.RESOURCE_GROUP_NAME }}
 
@@ -61,6 +52,7 @@ jobs:
       with:
         inlineScript: >
           echo "Creating resources"
+          echo "Executing az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug"
 
           az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug
 
@@ -69,6 +61,14 @@ jobs:
     needs: provision
     
     steps:
+
+    - name: Checkout to the branch
+      uses: actions/checkout@v2
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AzureSPN }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -124,15 +124,33 @@ jobs:
 
     steps:
 
+    - name: Checkout to the branch
+      uses: actions/checkout@v2
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AzureSPN }}
+
+    - name: Installing Container Apps extension
+      uses: azure/CLI@v1
+      with:
+        inlineScript: >
+          echo "Installing containerapp extension"
+
+          az config set extension.use_dynamic_install=yes_without_prompt
+
+          az extension add --name containerapp --yes
+
     - name: Deploy Silo
       uses: azure/CLI@v1
       with:
         inlineScript: >
           echo "Deploying Silo"
           
-          az containerapp registry set -n silo -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n silo -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
 
-          az containerapp update -n silo -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n silo -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Dashboard
       uses: azure/CLI@v1
@@ -140,9 +158,9 @@ jobs:
         inlineScript: >
           echo "Deploying Dashboard"
           
-          az containerapp registry set -n dashboard -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
 
-          az containerapp update -n dashboard -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Minimal API Client
       uses: azure/CLI@v1
@@ -150,9 +168,9 @@ jobs:
         inlineScript: >
           echo "Deploying Minimal API Client"
           
-          az containerapp registry set -n minimalapiclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
 
-          az containerapp update -n minimalapiclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Worker Service Client
       uses: azure/CLI@v1
@@ -160,9 +178,9 @@ jobs:
         inlineScript: >
           echo "Deploying Worker Service Client"
           
-          az containerapp registry set -n workerserviceclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
 
-          az containerapp update -n workerserviceclient -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Scaler
       uses: azure/CLI@v1
@@ -170,9 +188,9 @@ jobs:
         inlineScript: >
           echo "Deploying Scaler"
           
-          az containerapp registry set -n scaler -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
 
-          az containerapp update -n scaler -g ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
 
     - name: logout
       run: >

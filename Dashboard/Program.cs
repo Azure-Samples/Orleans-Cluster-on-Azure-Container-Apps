@@ -4,7 +4,7 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddWebAppApplicationInsights("Dashboard");
 builder.Host.UseOrleans(siloBuilder =>
 {
     siloBuilder
@@ -26,7 +26,6 @@ builder.Host.UseOrleans(siloBuilder =>
                     ? builder.Configuration.GetValue<bool>("HideTrace") 
                     : true);
 });
-builder.Services.AddWebAppApplicationInsights("Dashboard");
 
 // uncomment this if you dont mind hosting grains in the dashboard
 // builder.Services.DontHostGrainsHere();
