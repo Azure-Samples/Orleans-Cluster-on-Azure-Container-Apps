@@ -183,7 +183,7 @@ Now, the Orleans Dashboard will show you only the Grains relevant to your app; t
 
 Remember that earlier when we described each service, we mentioned the `workerserviceclient` container's job was to simulate 256 physical device peers that constantly send data into the cluster's back end. That's why there are 256 total activations; since there is 1 `workerserviceclient` container running in the environment and each worker represents 256 devices, there are 256 grains in the cluster, and they are all of type `SensorTwinGrain`. Looking at the Grains tab in the dashboard, you can see how Orleans creates these instances in the `silo` or in the `dashboard`; this is because the `dashboard` project also has a reference to the `Grains` project, so the Grain classes are instantiated in the `dashboard` as well as in the `silo` container app. 
 
-![Random (default) Grain distribution across the silos.](C:\Users\brady\source\Orleans-Cluster-on-Azure-Container-Apps\docs\media\grain-distribution.png)
+![Random (default) Grain distribution across the silos.](docs/media/grain-distribution.png)
 
 
 
