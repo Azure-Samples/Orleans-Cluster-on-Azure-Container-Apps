@@ -27,9 +27,22 @@ namespace Scaler.Services
             var response = new GetMetricsResponse();
             var grainType = request.ScaledObjectRef.ScalerMetadata["graintype"];
             var siloNameFilter = request.ScaledObjectRef.ScalerMetadata["siloNameFilter"];
+            var upperbound = Convert.ToInt32(request.ScaledObjectRef.ScalerMetadata["upperbound"]);
 
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
-            long metricValue = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
+            long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
+            long metricValue = 0;
+
+            if(grainsPerSilo < upperbound)
+            {
+                metricValue = fnd.SiloCount;
+            }
+
+            if (grainsPerSilo >= upperbound)
+            {
+                metricValue = fnd.SiloCount + 1;
+            }
+
             _logger.LogInformation($"Returning {metricValue} from GetMetrics.MetricsValue");
 
             response.MetricValues.Add(new MetricValue
