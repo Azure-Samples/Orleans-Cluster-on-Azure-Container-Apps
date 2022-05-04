@@ -29,25 +29,22 @@ namespace Scaler.Services
             var siloNameFilter = request.ScaledObjectRef.ScalerMetadata["siloNameFilter"];
             var upperbound = Convert.ToInt32(request.ScaledObjectRef.ScalerMetadata["upperbound"]);
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
-            var action = "remain at";
             long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
             long metricValue = fnd.SiloCount;
 
             // scale in (132 < 300)
             if (grainsPerSilo < upperbound)
             {
-                metricValue = fnd.SiloCount - 1 > 0 ? fnd.SiloCount - 1 : 1;
-                action = "scale to";
+                metricValue = fnd.GrainCount == 0 ? 1 : Convert.ToInt16(fnd.GrainCount / upperbound);
             }
 
             // scale out (605 > 300)
             if (grainsPerSilo >= upperbound)
             {
                 metricValue = fnd.SiloCount + 1;
-                action = "scale out to";
             }
 
-            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Upper Bound: {upperbound}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Action: {action} {metricValue}.");
+            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Upper Bound: {upperbound}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Scale to {metricValue}.");
 
             response.MetricValues.Add(new MetricValue
             {
