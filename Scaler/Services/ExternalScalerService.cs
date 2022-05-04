@@ -29,27 +29,25 @@ namespace Scaler.Services
             var siloNameFilter = request.ScaledObjectRef.ScalerMetadata["siloNameFilter"];
             var upperbound = Convert.ToInt32(request.ScaledObjectRef.ScalerMetadata["upperbound"]);
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
-            var action = "Unspecified";
+            var action = "remain at";
             long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
-            long metricValue = 0;
+            long metricValue = fnd.SiloCount;
 
-            if (grainsPerSilo < (2 * upperbound)) // remain
+            // scale in (132 < 300)
+            if (grainsPerSilo < upperbound)
             {
-                metricValue = fnd.SiloCount;
-                action = "remain at";
+                metricValue = fnd.SiloCount - 1 > 0 ? fnd.SiloCount - 1 : 1;
+                action = "scale to";
             }
-            else if (grainsPerSilo < upperbound)  // scale in
-            {
-                metricValue = fnd.SiloCount - 1;
-                action = "scale in to";
-            }
-            else if (grainsPerSilo >= upperbound) // scale out
+
+            // scale out (605 > 300)
+            if (grainsPerSilo >= upperbound)
             {
                 metricValue = fnd.SiloCount + 1;
                 action = "scale out to";
             }
 
-            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Action: {action} {metricValue}.");
+            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Upper Bound: {upperbound}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Action: {action} {metricValue}.");
 
             response.MetricValues.Add(new MetricValue
             {
