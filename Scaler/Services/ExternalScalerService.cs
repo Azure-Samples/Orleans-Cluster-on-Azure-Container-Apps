@@ -32,18 +32,24 @@ namespace Scaler.Services
             var fnd = await GetGrainCountInCluster(grainType, siloNameFilter);
             long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
             long metricValue = 0;
+            var action = "scale in";
 
-            if(grainsPerSilo < upperbound)
+            if (grainsPerSilo < (2 * upperbound)) // scale in
+            {
+                metricValue = fnd.SiloCount - 1;
+            }
+            else if (grainsPerSilo < upperbound)  // remain
             {
                 metricValue = fnd.SiloCount;
+                action = "remain";
             }
-
-            if (grainsPerSilo >= upperbound)
+            else if (grainsPerSilo >= upperbound) // scale out
             {
                 metricValue = fnd.SiloCount + 1;
+                action = "scale out";
             }
 
-            _logger.LogInformation($"Returning {metricValue} from GetMetrics.MetricsValue");
+            _logger.LogInformation($"Returning {metricValue} from GetMetrics.MetricsValue. Time to {action}.");
 
             response.MetricValues.Add(new MetricValue
             {
