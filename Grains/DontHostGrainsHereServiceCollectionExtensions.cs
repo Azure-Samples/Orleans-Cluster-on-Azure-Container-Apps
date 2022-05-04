@@ -1,10 +1,11 @@
-﻿using Infrastructure;
+﻿using Grains;
+using Microsoft.Extensions.DependencyInjection;
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 
 namespace Orleans.Hosting
 {
-    public static class GrainPlacementServiceCollectionExtensions
+    public static class DontHostGrainsHereServiceCollectionExtensions
     {
         public static IServiceCollection DontHostGrainsHere(this IServiceCollection services)
         {

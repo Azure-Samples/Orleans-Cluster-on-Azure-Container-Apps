@@ -23,6 +23,9 @@ builder.Host.UseOrleans(siloBuilder =>
 
 builder.Services.AddWebAppApplicationInsights("Silo");
 
+// uncomment this if you dont mind hosting grains in the dashboard
+builder.Services.DontHostGrainsHere();
+
 var app = builder.Build();
 
 app.MapGet("/", () => Results.Ok("Silo"));

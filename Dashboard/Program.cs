@@ -28,7 +28,7 @@ builder.Host.UseOrleans(siloBuilder =>
 });
 
 // uncomment this if you dont mind hosting grains in the dashboard
-// builder.Services.DontHostGrainsHere();
+builder.Services.DontHostGrainsHere();
 
 var app = builder.Build();
 
