@@ -287,7 +287,7 @@ Once you've updated the image in ACR, you can easily create a new revision from 
 
 Once the `silo` and `dashboard` containers are updated like this, the custom placement director will take affect, and grains will no longer be placed in the `dashboard`. 
 
-![Deliberate placement direction.](docs/media/no-more-dashboard-hosting.png)
+![No more grains in the dashboard!](C:\Users\brady\source\Orleans-Cluster-on-Azure-Container-Apps\docs\media\no-more-dashboard-hosting.png)
 
 ### Orleans Grain lifetimes
 
@@ -322,3 +322,47 @@ Eventually, the `TOTAL ACTIVATIONS` label will drop to 0 as shown here. The silo
 In the Azure portal, create a new revision of the `workerserviceclient` Azure Container App, and scale it all the way up to 10. 
 
 ![image-20220504152316419](docs/media/new-revision-ten.png)
+
+Now, when the revision spins up we'll receive the simulation of an surge in traffic. This surge in clients will create 2560 Grains in the cluster, which is currently staffed by a single `silo`. As soon as that load starts, the KEDA External Scaler implemented and running in the `scaler` container app notices and lets the fabric know the `silo` count is lower than the 300-Grains-per-silo limit, so Azure Container Apps automatically starts scaling the `silo` container app up. 
+
+![The custom Orleans External KEDA Scaler activating new silos.](docs/media/keda-scaling-out.png)
+
+Eventually the simulation reaches a peak and the maximum number of grains represented by 11 clients will be spread across the silos that came online during the surge. 
+
+![Seeing the results of the automatic silo scale-out.](docs/media/post-surge-distribution.png)
+
+If you'd like to see how a third set of clients (1 being the single, 2 being our 10x client revision) would be distributed across the existing silo revision, create a third revision of the `workerserviceclient` container app. 
+
+![A third wave of clients, but the silos are ready.](docs/media/third-client-wave.png)
+
+Now that we've seen how a surge in client behavior can easily be accommodated by my custom KEDA scaling implementation, let's turn the simulation all the way to zero. 
+
+### Scaling to zero
+
+With the load simulation over, scale the `workserviceclient` revisions back to zero active ones. Shut each one off in the portal until you see the `Create new revision` button in the portal. 
+
+![No more revisions!](docs/media/create-new-revision.png)
+
+First, you'll observe all the Grains activated in the cluster drop gradually to zero:
+
+![No more Grains in the cluster.](docs/media/no-more-grains.png)
+
+After a few minutes (around 10 in author's test cases), the KEDA scaler will begin to scale instances back down after around 10 minutes. By then all the grains will be long gone, so if you want to test a more gradual back-off, try creating smaller revisions of the `workerserviceclient` when you try this sample. 
+
+![KEDA scaling the cluster back down.](docs/media/scaler-working-back-down.png)
+
+Eventually the `silo` count will get to 1, and as always, the `dashboard` will remain at 1, and you'll have a fresh new cluster in which you can try new things, create new Grains, and see how things work. 
+
+## Summary
+
+In this tutorial you created a self-scaling Orleans cluster that runs inside of Azure Container Apps, using KEDA to automatically scale as needed, based on what you know your app can do. You can observe your app using Application Insights monitoring - see below for the final treat, an Application Map that shows the entire topology and traffic flow through the Orleans cluster in Azure Container Apps. Use this great telemetry to think of ways you can use Orleans and Azure Container Apps together to build your own enterprise-grade distributed topologies with cloud-native objects and .NET. 
+
+![Application Insight application map, where you can explore the cluster.](docs/media/app-map.png)
+
+Final note - to find the `ILogger<T>` output from throughout the various container apps in one single place, open up the Log Analytics Workspace resource, and go into the `Logs` menu item. There, you can query directly against the combined application components' log output. This final screen shot shows how I can look at the logs output from the `scaler` service, if I'm keen to try to understand the behavior it plans on executing. 
+
+![Viewing ILogger output for each container using Log Analytics.](docs/media/log-output.png)
+
+Happy coding!
+
+> Note: Don't forget to delete your resources, or at least, scale them way back. Thanks for trying this sample.
