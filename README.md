@@ -287,7 +287,7 @@ Once you've updated the image in ACR, you can easily create a new revision from 
 
 Once the `silo` and `dashboard` containers are updated like this, the custom placement director will take affect, and grains will no longer be placed in the `dashboard`. 
 
-![No more grains in the dashboard!](C:\Users\brady\source\Orleans-Cluster-on-Azure-Container-Apps\docs\media\no-more-dashboard-hosting.png)
+![No more grains in the dashboard!](docs/media/no-more-dashboard-hosting.png)
 
 ### Orleans Grain lifetimes
 
