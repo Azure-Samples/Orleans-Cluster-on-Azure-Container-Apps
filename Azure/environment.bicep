@@ -40,3 +40,5 @@ resource env 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
 }
 
 output id string = env.id
+output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
+output appInsightsConnectionString string = appInsights.properties.ConnectionString

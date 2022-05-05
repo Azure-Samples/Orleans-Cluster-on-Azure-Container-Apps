@@ -1,16 +1,5 @@
 param location string = resourceGroup().location
 
-var shared_config = [
-  {
-    name: 'ASPNETCORE_ENVIRONMENT'
-    value: 'Development'
-  }
-  {
-    name: 'StorageConnectionString'
-    value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
-  }
-]
-
 resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
   name: toLower('${resourceGroup().name}acr')
   location: location
@@ -36,7 +25,39 @@ module storage 'storage.bicep' = {
   }
 }
 
-module silo 'container-app-no-ingress.bicep' = {
+var shared_config = [
+  {
+    name: 'ASPNETCORE_ENVIRONMENT'
+    value: 'Development'
+  }
+  {
+    name: 'StorageConnectionString'
+    value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: env.outputs.appInsightsInstrumentationKey
+  }
+  {
+    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+    value: env.outputs.appInsightsConnectionString
+  }
+]
+
+module scaler 'scaler.bicep' = {
+  name: 'scaler'
+  params: {
+    location: location
+    name: 'scaler'
+    containerAppEnvironmentId: env.outputs.id
+    registry: acr.name
+    registryPassword: acr.listCredentials().passwords[0].value
+    registryUsername: acr.listCredentials().username
+    envVars : shared_config
+  }
+}
+
+module silo 'silo.bicep' = {
   name: 'silo'
   params: {
     location: location
@@ -45,12 +66,12 @@ module silo 'container-app-no-ingress.bicep' = {
     registry: acr.name
     registryPassword: acr.listCredentials().passwords[0].value
     registryUsername: acr.listCredentials().username
-    maxReplicas: 1
     envVars : shared_config
+    scalerUrl: scaler.outputs.fqdn
   }
 }
 
-module dashboard 'container-app-with-ingress.bicep' = {
+module dashboard 'dashboard.bicep' = {
   name: 'dashboard'
   params: {
     location: location
@@ -66,7 +87,7 @@ module dashboard 'container-app-with-ingress.bicep' = {
   }
 }
 
-module minimalapiclient 'container-app-with-ingress.bicep' = {
+module minimalapiclient 'minimalapiclient.bicep' = {
   name: 'minimalapiclient'
   params: {
     location: location
@@ -82,7 +103,7 @@ module minimalapiclient 'container-app-with-ingress.bicep' = {
   }
 }
 
-module workerserviceclient 'container-app-no-ingress.bicep' = {
+module workerserviceclient 'workerserviceclient.bicep' = {
   name: 'workerserviceclient'
   params: {
     location: location

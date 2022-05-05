@@ -34,7 +34,7 @@ namespace Clients.WorkerService
 
             for (int i = 0; i < 256; i++)
             {
-                var key = $"device{i.ToString().PadLeft(3, '0')}-{rnd.Next(10000, 99999)}-{Environment.MachineName}";
+                var key = $"device{i.ToString().PadLeft(5, '0')}-{rnd.Next(10000, 99999)}-{Environment.MachineName}";
                 randomDeviceIDs.Add(key);
                 randomDevices.Add(key, OrleansClusterClient.GetGrain<ISensorTwinGrain>(key));
             }

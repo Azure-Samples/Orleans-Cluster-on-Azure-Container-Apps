@@ -1,18 +1,20 @@
-using Clients.WorkerService;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Scaler.Services;
 
-IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
-    {
-        services.AddWorkerAppApplicationInsights("Worker Service Client");
-        services.ConnectOrleansClient();
-        services.AddHostedService<Worker>();
-    })
-    .Build();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.ConnectOrleansClient();
+builder.Services.AddGrpc();
+builder.Services.AddWebAppApplicationInsights("Scaler");
 
-await host.RunAsync();
+var app = builder.Build();
+
+app.MapGrpcService<ExternalScalerService>();
+app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+
+app.Run();
+
 
 // extension class that sets the Orleans client up and connects it to the cluster
 public static class ServiceCollectionOrleansClientExtension
