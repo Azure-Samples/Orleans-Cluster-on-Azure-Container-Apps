@@ -12,7 +12,7 @@ Throughout this tutorial you'll complete the following tasks:
 4. Simulate load by increasing the number of Worker services in the Azure portal.
 5. Observe how the cluster automatically scales based on application behavior using a custom external scaler
 
-
+Once the cluster is deployed, you can experiment with adding multiple revisions to simulate load on the cluster. 
 
 ## What you'll learn
 
