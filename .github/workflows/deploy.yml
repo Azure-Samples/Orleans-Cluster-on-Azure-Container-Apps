@@ -74,6 +74,12 @@ jobs:
       with:
         creds: ${{ secrets.AzureSPN }}
 
+    - name: Get ACR Login Server
+      run: |
+        # Retrieve ACR Login Server value from deployment output
+        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.RESOURCE_GROUP_NAME }} -n main --query properties.outputs.acrLoginServer.value | tr -d '"')
+        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
@@ -83,43 +89,43 @@ jobs:
         # see https://cloudarchitected.com/2021/09/logging-into-acr-in-github-actions/
         # see https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md#calling-post-oauth2exchange-to-get-an-acr-refresh-token
         access_token=$(az account get-access-token --query accessToken -o tsv)
-        refresh_token=$(curl https://${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io&access_token=$access_token" | jq -r .refresh_token)
+        refresh_token=$(curl https://${{ env.ACR_LOGIN_SERVER }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.ACR_LOGIN_SERVER }}&access_token=$access_token" | jq -r .refresh_token)
         # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
-        docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io <<< "$refresh_token"
+        docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin ${{ env.ACR_LOGIN_SERVER }} <<< "$refresh_token"
 
     - name: Build and push Silo image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.SILO_DOCKER_FILE_PATH }}
     
     - name: Build and push Dashboard image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.DASHBOARD_DOCKER_FILE_PATH }}
 
     - name: Build and push Minimal Client image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.MINIMAL_CLIENT_DOCKER_FILE_PATH }}
 
     - name: Build and push Worker Service Client image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.WORKERSERVICE_CLIENT_DOCKER_FILE_PATH }}
 
     - name: Build and push Scaler image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.SCALER_DOCKER_FILE_PATH }}
 
   deploy:
@@ -146,15 +152,21 @@ jobs:
 
           az extension add --name containerapp --yes
 
+    - name: Get ACR Login Server
+      run: |
+        # Retrieve ACR Login Server value from deployment output
+        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.RESOURCE_GROUP_NAME }} -n main --query properties.outputs.acrLoginServer.value | tr -d '"')
+        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+
     - name: Deploy Silo
       uses: azure/CLI@v1
       with:
         inlineScript: >
           echo "Deploying Silo"
           
-          az containerapp registry set -n silo -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n silo -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
 
-          az containerapp update -n silo -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n silo -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Dashboard
       uses: azure/CLI@v1
@@ -162,9 +174,9 @@ jobs:
         inlineScript: >
           echo "Deploying Dashboard"
           
-          az containerapp registry set -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
 
-          az containerapp update -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Minimal API Client
       uses: azure/CLI@v1
@@ -172,9 +184,9 @@ jobs:
         inlineScript: >
           echo "Deploying Minimal API Client"
           
-          az containerapp registry set -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
 
-          az containerapp update -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Worker Service Client
       uses: azure/CLI@v1
@@ -182,9 +194,9 @@ jobs:
         inlineScript: >
           echo "Deploying Worker Service Client"
           
-          az containerapp registry set -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
 
-          az containerapp update -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Scaler
       uses: azure/CLI@v1
@@ -192,9 +204,9 @@ jobs:
         inlineScript: >
           echo "Deploying Scaler"
           
-          az containerapp registry set -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io
+          az containerapp registry set -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
 
-          az containerapp update -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.RESOURCE_GROUP_NAME }}acr.azurecr.io/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
 
     - name: logout
       run: >
