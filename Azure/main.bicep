@@ -19,7 +19,7 @@ module env 'environment.bicep' = {
 }
 
 module storage 'storage.bicep' = {
-  name: toLower('${resourceGroup().name}strg')
+  name: toLower('${uniqueString(resourceGroup().id)}strg')
   params: {
     location: location
   }
