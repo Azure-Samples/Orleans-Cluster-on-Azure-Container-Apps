@@ -14,6 +14,8 @@ Throughout this tutorial you'll complete the following tasks:
 
 Once the cluster is deployed, you can experiment with adding multiple revisions to simulate load on the cluster. 
 
+> Note: Don't forget to delete your resources, or at least, scale them way back after trying.
+
 ## What you'll learn
 
 This exercise will introduce you to a variety of concepts, with links to supporting documentation throughout the tutorial. 
