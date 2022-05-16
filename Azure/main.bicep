@@ -1,7 +1,7 @@
 param location string = resourceGroup().location
 
 resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
-  name: toLower('${resourceGroup().name}acr')
+  name: toLower('${uniqueString(resourceGroup().id)}acr')
   location: location
   sku: {
     name: 'Basic'
@@ -19,7 +19,7 @@ module env 'environment.bicep' = {
 }
 
 module storage 'storage.bicep' = {
-  name: toLower('${resourceGroup().name}strg')
+  name: toLower('${uniqueString(resourceGroup().id)}strg')
   params: {
     location: location
   }
@@ -117,3 +117,4 @@ module workerserviceclient 'workerserviceclient.bicep' = {
   }
 }
 
+output acrLoginServer string = acr.properties.loginServer
