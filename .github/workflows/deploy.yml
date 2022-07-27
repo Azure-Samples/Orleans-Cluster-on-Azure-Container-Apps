@@ -8,7 +8,7 @@ on:
 env:
   
   # alphanumeric string under 14 characters
-  RESOURCE_GROUP_NAME: orleans-cluster-on-container-apps
+  RESOURCE_GROUP_NAME: hello-demo-app
 
   # specify your preferred region
   REGION: eastus
