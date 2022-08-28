@@ -367,4 +367,4 @@ Final note - to find the `ILogger<T>` output from throughout the various contain
 
 Happy coding!
 
-> Note: Don't forget to delete your resources, or at least, scale them way back. Thanks for trying this sample.
+> Note: Don't forget to delete your resources, or at least, scale them way back. You can delete the resources using `az group delete --resource-group orleans-cluster-on-container-apps` (or whatever you named your resource group to when editing deploy.yml to force the deployment), followed by browsing to the Azure Portal, searching for OrleansACASample, and deleting the Azure AD App registration. Thanks for trying this sample.
