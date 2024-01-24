@@ -5,19 +5,16 @@ param repositoryImage string = 'mcr.microsoft.com/azuredocs/containerapps-hellow
 param envVars array = []
 param registry string
 param registryUsername string
-param minReplicas int = 1
-param maxReplicas int = 10
-param scalerUrl string
 @secure()
 param registryPassword string
 
-resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
+resource containerApp 'Microsoft.App/containerApps@2023-08-01-preview' ={
   name: name
   location: location
-  properties: {
+  properties:{
     managedEnvironmentId: containerAppEnvironmentId
     configuration: {
-      activeRevisionsMode: 'multiple'
+      activeRevisionsMode: 'single'
       secrets: [
         {
           name: 'container-registry-password'
@@ -31,6 +28,12 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
           passwordSecretRef: 'container-registry-password'
         }
       ]
+      ingress: {
+        external: false
+        targetPort: 80
+        allowInsecure: true
+        transport: 'http2'
+      }
     }
     template: {
       containers: [
@@ -41,23 +44,11 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
         }
       ]
       scale: {
-        minReplicas: minReplicas
-        maxReplicas: maxReplicas
-        rules: [
-          {
-            name: 'scaler'
-            custom: {
-              type: 'external'
-              metadata: {
-                scalerAddress: '${scalerUrl}:80'
-                graintype: 'sensortwin'
-                siloNameFilter: 'silo'
-                upperbound: '300'
-              }
-            }
-          }
-        ]
+        minReplicas: 1
+        maxReplicas: 1
       }
     }
   }
 }
+
+output fqdn string = containerApp.properties.configuration.ingress.fqdn

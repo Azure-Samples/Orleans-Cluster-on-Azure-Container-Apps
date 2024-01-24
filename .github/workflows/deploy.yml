@@ -8,10 +8,10 @@ on:
 env:
   
   # alphanumeric string under 14 characters
-  RESOURCE_GROUP_NAME: orleans-cluster-on-container-apps
+  RESOURCE_GROUP_NAME: orleansbookie
 
   # specify your preferred region
-  REGION: eastus
+  REGION: ukwest
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo
@@ -56,9 +56,9 @@ jobs:
       with:
         inlineScript: >
           echo "Creating resources"
-          echo "Executing az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug"
+          echo "Executing az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '.github/workflows/flex/main.bicep' --debug"
 
-          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug
+          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '.github/workflows/flex/main.bicep' --debug
 
   build:
     runs-on: ubuntu-latest

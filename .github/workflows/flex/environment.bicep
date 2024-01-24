@@ -1,7 +1,7 @@
 param baseName string = resourceGroup().name
 param location string = resourceGroup().location
 
-resource logs 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
+resource logs 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: '${baseName}logs'
   location: location
   properties: any({
@@ -25,7 +25,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource env 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
+resource env 'Microsoft.App/managedEnvironments@2023-08-01-preview' = {
   name: '${baseName}env'
   location: location
   properties: {

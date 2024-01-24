@@ -3,12 +3,16 @@ param location string = resourceGroup().location
 param containerAppEnvironmentId string
 param repositoryImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 param envVars array = []
+param allowExternalIngress bool = false
+param targetIngressPort int = 80
 param registry string
 param registryUsername string
+param minReplicas int = 1
+param maxReplicas int = 1
 @secure()
 param registryPassword string
 
-resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
+resource containerApp 'Microsoft.App/containerApps@2023-08-01-preview' ={
   name: name
   location: location
   properties:{
@@ -29,10 +33,8 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
         }
       ]
       ingress: {
-        external: false
-        targetPort: 80
-        allowInsecure: true
-        transport: 'http2'
+        external: allowExternalIngress
+        targetPort: targetIngressPort
       }
     }
     template: {
@@ -44,8 +46,8 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
         }
       ]
       scale: {
-        minReplicas: 1
-        maxReplicas: 1
+        minReplicas: minReplicas
+        maxReplicas: maxReplicas
       }
     }
   }

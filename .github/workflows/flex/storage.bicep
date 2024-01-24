@@ -1,6 +1,6 @@
 param location string = resourceGroup().location
 
-resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: toLower('${uniqueString(resourceGroup().id)}strg')
   location: location
   kind: 'StorageV2'
