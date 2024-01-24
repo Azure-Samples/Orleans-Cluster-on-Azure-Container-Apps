@@ -1,6 +1,6 @@
 param location string = resourceGroup().location
 
-resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
+resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
   name: toLower('${uniqueString(resourceGroup().id)}acr')
   location: location
   sku: {
