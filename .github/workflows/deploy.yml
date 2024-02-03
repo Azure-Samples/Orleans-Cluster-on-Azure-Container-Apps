@@ -8,10 +8,10 @@ on:
 env:
   
   # alphanumeric string under 14 characters
-  RESOURCE_GROUP_NAME: orleansbookie
+  RESOURCE_GROUP_NAME: orleansbookieuk
 
   # specify your preferred region
-  REGION: eastus
+  REGION: ukwest
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo
