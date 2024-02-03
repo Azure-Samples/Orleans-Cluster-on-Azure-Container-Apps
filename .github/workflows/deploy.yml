@@ -11,7 +11,7 @@ env:
   RESOURCE_GROUP_NAME: orleansbookie
 
   # specify your preferred region
-  REGION: ukwest
+  REGION: eastus
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo

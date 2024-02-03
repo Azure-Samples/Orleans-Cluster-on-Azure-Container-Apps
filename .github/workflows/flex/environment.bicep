@@ -5,12 +5,12 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: '${baseName}logs'
   location: location
   properties: any({
-    retentionInDays: 30
+    retentionInDays: 1
     features: {
       searchVersion: 1
     }
     sku: {
-      name: 'PerGB2018'
+      name: 'Free'
     }
   })
 }
