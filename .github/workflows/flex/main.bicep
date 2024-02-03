@@ -34,14 +34,6 @@ var shared_config = [
     name: 'StorageConnectionString'
     value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
   }
-  {
-    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-    value: env.outputs.appInsightsInstrumentationKey
-  }
-  {
-    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-    value: env.outputs.appInsightsConnectionString
-  }
 ]
 
 module scaler 'scaler.bicep' = {
