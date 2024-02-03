@@ -6,7 +6,7 @@ resource env 'Microsoft.App/managedEnvironments@2023-08-01-preview' = {
   location: location
   properties: {
     appLogsConfiguration: {
-      destination: 'none'
+      destination: 'azure-monitor'
     }
   }
 }
