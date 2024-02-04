@@ -1,0 +1,1 @@
+﻿public record WelcomeMessage(string GrainType);

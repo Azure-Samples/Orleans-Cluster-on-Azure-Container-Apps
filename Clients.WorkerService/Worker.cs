@@ -1,5 +1,4 @@
 using Abstractions;
-using Orleans;
 
 namespace Clients.WorkerService
 {
@@ -12,18 +11,6 @@ namespace Clients.WorkerService
         {
             _logger = logger;
             OrleansClusterClient = orleansClusterClient;
-        }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            await OrleansClusterClient.Connect();
-            await base.StartAsync(cancellationToken);
-        }
-
-        public override async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await OrleansClusterClient.DisposeAsync();
-            await base.StopAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,7 +28,7 @@ namespace Clients.WorkerService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await Parallel.ForEachAsync(randomDeviceIDs, async (deviceId, stoppingToken) =>
+                await Parallel.ForEachAsync(randomDeviceIDs, stoppingToken, async (deviceId, _) =>
                 {
                     await randomDevices[deviceId].ReceiveSensorState(new SensorState
                     {

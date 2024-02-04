@@ -1,0 +1,1 @@
+﻿public record GrainSummary(string GrainType, int Count, string Host);

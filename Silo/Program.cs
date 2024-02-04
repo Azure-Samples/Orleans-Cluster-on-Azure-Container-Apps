@@ -1,6 +1,5 @@
-using Orleans;
 using Orleans.Configuration;
-using Orleans.Hosting;
+using Orleans.Runtime.Development;
 
 var builder = WebApplication.CreateBuilder(args);
 
