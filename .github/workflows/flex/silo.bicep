@@ -6,7 +6,7 @@ param envVars array = []
 param registry string
 param registryUsername string
 param minReplicas int = 1
-param maxReplicas int = 10
+param maxReplicas int = 1
 param scalerUrl string
 @secure()
 param registryPassword string

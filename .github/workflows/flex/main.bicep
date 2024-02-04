@@ -34,14 +34,6 @@ var shared_config = [
     name: 'StorageConnectionString'
     value: format('DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageName};AccountKey=${storage.outputs.accountKey};EndpointSuffix=core.windows.net')
   }
-  {
-    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-    value: env.outputs.appInsightsInstrumentationKey
-  }
-  {
-    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-    value: env.outputs.appInsightsConnectionString
-  }
 ]
 
 module scaler 'scaler.bicep' = {
@@ -66,6 +58,7 @@ module silo 'silo.bicep' = {
     registry: acr.name
     registryPassword: acr.listCredentials().passwords[0].value
     registryUsername: acr.listCredentials().username
+    maxReplicas: 10
     envVars : shared_config
     scalerUrl: scaler.outputs.fqdn
   }
@@ -112,7 +105,7 @@ module workerserviceclient 'workerserviceclient.bicep' = {
     registry: acr.name
     registryPassword: acr.listCredentials().passwords[0].value
     registryUsername: acr.listCredentials().username
-    maxReplicas: 1
+    maxReplicas: 10
     envVars : shared_config
   }
 }
