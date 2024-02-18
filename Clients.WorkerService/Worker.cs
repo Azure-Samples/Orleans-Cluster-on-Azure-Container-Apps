@@ -22,18 +22,24 @@ namespace Clients.WorkerService
 
             for (var i = 0; i < 1024; i++)
             {
-                var key = $"device{i.ToString().PadLeft(5, '0')}-{rnd.Long(10000, 99999)}-{Environment.MachineName}";
+                var key = $"device{i.ToString().PadLeft(5, '0')}-{rnd.Long(1, 1024)}-{Environment.MachineName}";
                 randomDeviceIDs.Add(key);
                 var sensorTwinGrain = OrleansClusterClient.GetGrain<ISensorTwinGrain>(key);
                 randomDevices.Add(key, sensorTwinGrain);
             }
+            
+            var faker = new Faker<SensorState>()
+                .RuleFor(s => s.TimeStamp, DateTime.UtcNow)
+                .RuleFor(s => s.Value, (f, s) => f.Random.Double(s.Value))
+                .RuleFor(s => s.Type, (f, s) => f.Random.Enum<SensorType>());            
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var faker = new Faker<SensorState>("en");
                 await Parallel.ForEachAsync(randomDeviceIDs, stoppingToken, async (deviceId, _) =>
                 {
-                    await randomDevices[deviceId].ReceiveSensorState(faker.Generate());
+                    var sensorState = faker.RuleFor(s => s.SensorId, deviceId).Generate();
+                    _logger.LogInformation("publishing sensor state >> {State}", sensorState.ToString());
+                    await randomDevices[deviceId].ReceiveSensorState(sensorState);
                 });
             }
         }

@@ -1,6 +1,7 @@
 ﻿using Externalscaler;
 using Grpc.Core;
 using Orleans.Runtime;
+// ReSharper disable NotAccessedPositionalProperty.Global
 
 namespace Scaler.Services
 {
@@ -43,7 +44,7 @@ namespace Scaler.Services
                 metricValue = fnd.SiloCount + 1;
             }
 
-            _logger.LogInformation("Grains Per Silo: {GrainsPerSilo}, Upper Bound: {Upperbound}, Grain Count: {FndGrainCount}, Silo Count: {FndSiloCount}. Scale to {MetricValue}.", grainsPerSilo, upperbound, fnd.GrainCount,
+            _logger.LogInformation("Grains Per Silo: {GrainsPerSilo}, Upper Bound: {Upperbound}, Grain Count: {FndGrainCount}, Silo Count: {FndSiloCount} Scale to {MetricValue}", grainsPerSilo, upperbound, fnd.GrainCount,
                 fnd.SiloCount, metricValue);
 
             response.MetricValues.Add(new MetricValue
@@ -96,7 +97,7 @@ namespace Scaler.Services
             CheckRequestMetadata(request);
 
             var result = await AreTooManyGrainsInTheCluster(request);
-            _logger.LogInformation("Returning {Result} from IsActive.", result);
+            _logger.LogInformation("Returning {Result} from IsActive", result);
             return new IsActiveResponse
             {
                 Result = result
@@ -128,13 +129,13 @@ namespace Scaler.Services
         {
             var statistics = await _managementGrain.GetDetailedGrainStatistics();
             var activeGrainsInCluster = statistics.Select(_ => new GrainInfo(_.GrainType, _.GrainId.Key.ToString()!, _.SiloAddress.ToGatewayUri().AbsoluteUri));
-            var activeGrainsOfSpecifiedType = activeGrainsInCluster.Where(_ => _.Type.ToLower().Contains(grainType));
+            var activeGrainsOfSpecifiedType = activeGrainsInCluster.Where(_ => _.Type.ToLower().Contains(grainType)).ToArray();
             var detailedHosts = await _managementGrain.GetDetailedHosts();
             var silos = detailedHosts
                 .Where(x => x.Status == SiloStatus.Active)
                 .Select(_ => new SiloInfo(_.SiloName, _.SiloAddress.ToGatewayUri().AbsoluteUri));
             var activeSiloCount = silos.Count(_ => _.SiloName.Contains(siloNameFilter.ToLower(), StringComparison.CurrentCultureIgnoreCase));
-            _logger.LogInformation($"Found {activeGrainsOfSpecifiedType.Count()} instances of {grainType} in cluster, with {activeSiloCount} '{siloNameFilter}' silos in the cluster hosting {grainType} grains.");
+            _logger.LogInformation("Found {Length} instances of {GrainType} in cluster, with {ActiveSiloCount} \'{SiloNameFilter}\' silos in the hosting cluster", activeGrainsOfSpecifiedType.Length, grainType, activeSiloCount, siloNameFilter);
             return new GrainSaturationSummary(activeGrainsOfSpecifiedType.Count(), activeSiloCount);
         }
     }
