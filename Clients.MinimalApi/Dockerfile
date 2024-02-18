@@ -6,8 +6,11 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
 COPY ["Clients.MinimalApi/Clients.MinimalApi.csproj", "Clients.MinimalApi/"]
 COPY ["Abstractions/Abstractions.csproj", "Abstractions/"]
+COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+
 RUN dotnet restore "Clients.MinimalApi/Clients.MinimalApi.csproj"
 COPY . .
 WORKDIR "/src/Clients.MinimalApi"

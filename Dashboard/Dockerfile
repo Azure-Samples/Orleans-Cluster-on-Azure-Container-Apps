@@ -8,9 +8,12 @@ EXPOSE 30000
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
 COPY ["Dashboard/Dashboard.csproj", "Dashboard/"]
 COPY ["Abstractions/Abstractions.csproj", "Abstractions/"]
 COPY ["Grains/Grains.csproj", "Grains/"]
+COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+
 RUN dotnet restore "Dashboard/Dashboard.csproj"
 COPY . .
 WORKDIR "/src/Dashboard"

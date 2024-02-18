@@ -6,9 +6,12 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
 COPY ["Clients.WorkerService/Clients.WorkerService.csproj", "Clients.WorkerService/"]
 COPY ["Abstractions/Abstractions.csproj", "Abstractions/"]
 COPY ["Grains/Grains.csproj", "Grains/"]
+COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+
 RUN dotnet restore "Clients.WorkerService/Clients.WorkerService.csproj"
 COPY . .
 WORKDIR "/src/Clients.WorkerService"
