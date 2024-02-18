@@ -1,4 +1,5 @@
 using Abstractions;
+using Bogus;
 
 namespace Clients.WorkerService
 {
@@ -15,28 +16,24 @@ namespace Clients.WorkerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var rnd = new Random();
+            var rnd = new Randomizer(100);
             var randomDeviceIDs = new List<string>();
             var randomDevices = new Dictionary<string, ISensorTwinGrain>();
 
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 1024; i++)
             {
-                var key = $"device{i.ToString().PadLeft(5, '0')}-{rnd.Next(10000, 99999)}-{Environment.MachineName}";
+                var key = $"device{i.ToString().PadLeft(5, '0')}-{rnd.Long(10000, 99999)}-{Environment.MachineName}";
                 randomDeviceIDs.Add(key);
-                randomDevices.Add(key, OrleansClusterClient.GetGrain<ISensorTwinGrain>(key));
+                var sensorTwinGrain = OrleansClusterClient.GetGrain<ISensorTwinGrain>(key);
+                randomDevices.Add(key, sensorTwinGrain);
             }
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                var faker = new Faker<SensorState>("en");
                 await Parallel.ForEachAsync(randomDeviceIDs, stoppingToken, async (deviceId, _) =>
                 {
-                    await randomDevices[deviceId].ReceiveSensorState(new SensorState
-                    {
-                        SensorId = deviceId,
-                        TimeStamp = DateTime.Now,
-                        Type = SensorType.Unspecified,
-                        Value = rnd.Next(0, 100)
-                    });
+                    await randomDevices[deviceId].ReceiveSensorState(faker.Generate());
                 });
             }
         }

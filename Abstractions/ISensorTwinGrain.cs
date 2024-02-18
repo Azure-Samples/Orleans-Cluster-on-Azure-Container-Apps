@@ -8,7 +8,7 @@ namespace Abstractions
         Task ReceiveSensorState(SensorState sensorState);
     }
 
-    [Serializable]
+    [GenerateSerializer, Immutable]
     public class SensorState
     {
         public string? SensorId { get; set; }
@@ -17,8 +17,8 @@ namespace Abstractions
         public SensorType Type { get; set; } = SensorType.Unspecified;
     }
 
-    [Serializable]
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    [GenerateSerializer]
     public enum SensorType
     {
         Unspecified = 0,

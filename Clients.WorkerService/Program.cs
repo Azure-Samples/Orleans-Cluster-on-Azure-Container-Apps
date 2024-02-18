@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Clients.WorkerService;
 using Orleans.Configuration;
 
@@ -11,9 +12,20 @@ webApplicationBuilder.Host.UseOrleansClient((context, builder) =>
             options.ServiceId = "Service";
         });
 
-        var connectionString = context.Configuration.GetValue<string>("StorageConnectionString");
+        DebugFoo(builder);
+        ReleaseFoo(builder, context.Configuration.GetValue<string>("StorageConnectionString") ?? "NOTSET");
 
-        builder.UseAzureStorageClustering(options => options.ConfigureTableServiceClient(connectionString));
+        [Conditional("RELEASE")]
+        static void ReleaseFoo(IClientBuilder sb, string connectionString)
+        {
+            sb.UseAzureStorageClustering(options => { options.ConfigureTableServiceClient(connectionString); });
+        }
+
+        [Conditional("DEBUG")]
+        static void DebugFoo(IClientBuilder sb)
+        {
+            sb.UseLocalhostClustering();
+        }
     })
     .ConfigureServices(services =>
     {

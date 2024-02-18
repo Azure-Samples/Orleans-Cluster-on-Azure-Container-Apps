@@ -13,9 +13,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Orleans.Clustering.AzureStorage" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
+		<PackageReference Include="Microsoft.Orleans.Clustering.AzureStorage" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Orleans.Server" Version="7.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
 	</ItemGroup>
 

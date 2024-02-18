@@ -1,11 +1,13 @@
-﻿using Orleans;
+﻿using JetBrains.Annotations;
+using Orleans;
 using Orleans.Placement;
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 
 namespace Grains
 {
-    public class DontPlaceMeOnTheDashboardSiloDirector : IPlacementDirector
+    [UsedImplicitly]
+    public sealed class DontPlaceMeOnTheDashboardSiloDirector : IPlacementDirector
     {
         public IGrainFactory GrainFactory { get; set; }
         public IManagementGrain ManagementGrain { get; set; }
@@ -24,12 +26,12 @@ namespace Grains
         }
     }
 
-    [Serializable]
+    [Serializable, GenerateSerializer]
     public sealed class DontPlaceMeOnTheDashboardStrategy : PlacementStrategy
     {
     }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class DontPlaceMeOnTheDashboardAttribute : PlacementAttribute
     {
         public DontPlaceMeOnTheDashboardAttribute() :

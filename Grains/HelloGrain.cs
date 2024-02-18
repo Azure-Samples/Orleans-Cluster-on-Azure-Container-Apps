@@ -7,7 +7,7 @@ namespace Grains
     {
         public Task<string> SayHello()
         {
-            return Task.FromResult($"Hello from Grain {this.GetGrainIdentity().PrimaryKeyString}");
+            return Task.FromResult($"Hello from Grain {this.GetGrainId().Key}");
         }
     }
 }

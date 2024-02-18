@@ -7,14 +7,11 @@ namespace Orleans.Hosting
 {
     public static class DontHostGrainsHereServiceCollectionExtensions
     {
-        public static IServiceCollection DontHostGrainsHere(this IServiceCollection services)
+        public static void DontHostGrainsOnDashboard(this IServiceCollection services)
         {
-            services.AddSingletonNamedService<PlacementStrategy, DontPlaceMeOnTheDashboardStrategy>(nameof(DontPlaceMeOnTheDashboardSiloDirector));
+            services.AddSingletonNamedService<PlacementStrategy, DontPlaceMeOnTheDashboardStrategy>(nameof(DontPlaceMeOnTheDashboardStrategy));
 
-            services.AddSingletonKeyedService<Type, IPlacementDirector, DontPlaceMeOnTheDashboardSiloDirector>(
-                    typeof(DontPlaceMeOnTheDashboardStrategy));
-
-            return services;
+            services.AddSingletonKeyedService<Type, IPlacementDirector, DontPlaceMeOnTheDashboardSiloDirector>(typeof(DontPlaceMeOnTheDashboardStrategy));
         }
     }
 }

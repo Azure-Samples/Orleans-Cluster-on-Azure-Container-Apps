@@ -11,14 +11,14 @@ namespace Scaler.Services
 
         private readonly string _metricName = "grainThreshold";
 
-        public ExternalScalerService(ILogger<ExternalScalerService> logger, 
+        public ExternalScalerService(ILogger<ExternalScalerService> logger,
             IGrainFactory client)
         {
             _logger = logger;
             _managementGrain = client.GetGrain<IManagementGrain>(0);
         }
 
-        public override async Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request, 
+        public override async Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request,
             ServerCallContext context)
         {
             CheckRequestMetadata(request.ScaledObjectRef);
@@ -43,7 +43,8 @@ namespace Scaler.Services
                 metricValue = fnd.SiloCount + 1;
             }
 
-            _logger.LogInformation($"Grains Per Silo: {grainsPerSilo}, Upper Bound: {upperbound}, Grain Count: {fnd.GrainCount}, Silo Count: {fnd.SiloCount}. Scale to {metricValue}.");
+            _logger.LogInformation("Grains Per Silo: {GrainsPerSilo}, Upper Bound: {Upperbound}, Grain Count: {FndGrainCount}, Silo Count: {FndSiloCount}. Scale to {MetricValue}.", grainsPerSilo, upperbound, fnd.GrainCount,
+                fnd.SiloCount, metricValue);
 
             response.MetricValues.Add(new MetricValue
             {
@@ -54,7 +55,7 @@ namespace Scaler.Services
             return response;
         }
 
-        public override Task<GetMetricSpecResponse> GetMetricSpec(ScaledObjectRef request, 
+        public override Task<GetMetricSpecResponse> GetMetricSpec(ScaledObjectRef request,
             ServerCallContext context)
         {
             CheckRequestMetadata(request);
@@ -70,7 +71,7 @@ namespace Scaler.Services
             return Task.FromResult(resp);
         }
 
-        public override async Task StreamIsActive(ScaledObjectRef request, 
+        public override async Task StreamIsActive(ScaledObjectRef request,
             IServerStreamWriter<IsActiveResponse> responseStream, ServerCallContext context)
         {
             CheckRequestMetadata(request);
@@ -95,7 +96,7 @@ namespace Scaler.Services
             CheckRequestMetadata(request);
 
             var result = await AreTooManyGrainsInTheCluster(request);
-            _logger.LogInformation($"Returning {result} from IsActive.");
+            _logger.LogInformation("Returning {Result} from IsActive.", result);
             return new IsActiveResponse
             {
                 Result = result
@@ -106,7 +107,7 @@ namespace Scaler.Services
         {
             if (!request.ScalerMetadata.ContainsKey("graintype")
                 || !request.ScalerMetadata.ContainsKey("upperbound")
-                 || !request.ScalerMetadata.ContainsKey("siloNameFilter"))
+                || !request.ScalerMetadata.ContainsKey("siloNameFilter"))
             {
                 throw new ArgumentException("graintype, siloNameFilter, and upperbound must be specified");
             }
@@ -130,8 +131,8 @@ namespace Scaler.Services
             var activeGrainsOfSpecifiedType = activeGrainsInCluster.Where(_ => _.Type.ToLower().Contains(grainType));
             var detailedHosts = await _managementGrain.GetDetailedHosts();
             var silos = detailedHosts
-                            .Where(x => x.Status == SiloStatus.Active)
-                            .Select(_ => new SiloInfo(_.SiloName, _.SiloAddress.ToGatewayUri().AbsoluteUri));
+                .Where(x => x.Status == SiloStatus.Active)
+                .Select(_ => new SiloInfo(_.SiloName, _.SiloAddress.ToGatewayUri().AbsoluteUri));
             var activeSiloCount = silos.Count(_ => _.SiloName.Contains(siloNameFilter.ToLower(), StringComparison.CurrentCultureIgnoreCase));
             _logger.LogInformation($"Found {activeGrainsOfSpecifiedType.Count()} instances of {grainType} in cluster, with {activeSiloCount} '{siloNameFilter}' silos in the cluster hosting {grainType} grains.");
             return new GrainSaturationSummary(activeGrainsOfSpecifiedType.Count(), activeSiloCount);
@@ -139,6 +140,8 @@ namespace Scaler.Services
     }
 
     public record GrainInfo(string Type, string PrimaryKey, string SiloName);
+
     public record GrainSaturationSummary(long GrainCount, long SiloCount);
+
     public record SiloInfo(string SiloName, string SiloAddress);
 }
