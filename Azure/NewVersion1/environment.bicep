@@ -20,14 +20,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   location: location
   kind: 'web'
   properties: {
-    workloadProfiles: [
-      {
-        name: 'general'
-        workloadProfileType: 'D4'
-        minimumCount: 1
-        maximumCount: 3
-      }
-    ]
     Application_Type: 'web'
     WorkspaceResourceId: logs.id
   }
