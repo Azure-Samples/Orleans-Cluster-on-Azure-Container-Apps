@@ -1,9 +1,9 @@
 name: Build and deploy .NET application to Container App silo
 
-on:
-  push:
-    branches:
-    - deploy
+##on:
+  ##push:
+    ##branches:
+    ##- deploy
 
 env:
   
