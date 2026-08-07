@@ -1,17 +1,17 @@
 name: Build and deploy .NET application to Container App silo
 
-##on:
-  ##push:
-    ##branches:
-    ##- deploy
+on:
+  push:
+    branches:
+    - deploy
 
 env:
   
   # alphanumeric string under 14 characters
-  RESOURCE_GROUP_NAME: orleans-cluster-on-container-apps
+  RESOURCE_GROUP_NAME: hungdangacarg003
 
   # specify your preferred region
-  REGION: eastus
+  REGION: southeastasia
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo
@@ -58,7 +58,7 @@ jobs:
           echo "Creating resources"
           echo "Executing az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug"
 
-          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug
+          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file 'Azure/main.bicep' --debug
 
   build:
     runs-on: ubuntu-latest
