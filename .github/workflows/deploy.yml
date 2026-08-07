@@ -8,7 +8,7 @@ on:
 env:
   
   # alphanumeric string under 14 characters
-  RESOURCE_GROUP_NAME: hungdangacarg005
+  RESOURCE_GROUP_NAME: hungdangacarg006
 
   # specify your preferred region
   REGION: southeastasia
