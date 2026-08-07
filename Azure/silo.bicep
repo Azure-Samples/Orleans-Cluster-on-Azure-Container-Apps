@@ -11,7 +11,7 @@ param scalerUrl string
 @secure()
 param registryPassword string
 
-resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' ={
   name: name
   location: location
   properties: {
