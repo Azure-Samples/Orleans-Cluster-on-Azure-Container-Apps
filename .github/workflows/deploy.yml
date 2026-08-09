@@ -13,7 +13,7 @@ env:
   # specify your preferred region
   REGION: southeastasia
   TF_WORKING_DIR: Azure/NewVersion3/terraform
-  TF_PLUGIN_CACHE_DIR: ~/.terraform.d/plugin-cache
+  TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo

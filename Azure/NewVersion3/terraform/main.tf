@@ -48,6 +48,7 @@ resource "azurerm_container_app_environment" "env" {
   name                       = "${local.base_name}env"
   location                   = local.location
   resource_group_name        = data.azurerm_resource_group.rg.name
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.logs.id
 
   workload_profile {
