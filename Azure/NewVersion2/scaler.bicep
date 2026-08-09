@@ -1,0 +1,57 @@
+param name string
+param location string = resourceGroup().location
+param containerAppEnvironmentId string
+param repositoryImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+param envVars array = []
+param registry string
+param registryUsername string
+@secure()
+param registryPassword string
+
+param workloadProfileName string = 'Consumption'
+
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
+  name: name
+  location: location
+  properties: {
+    managedEnvironmentId: containerAppEnvironmentId
+    workloadProfileName: workloadProfileName
+    configuration: {
+      activeRevisionsMode: 'single'
+      secrets: [
+        {
+          name: 'container-registry-password'
+          value: registryPassword
+        }
+      ]
+      registries: [
+        {
+          server: registry
+          username: registryUsername
+          passwordSecretRef: 'container-registry-password'
+        }
+      ]
+      ingress: {
+        external: false
+        targetPort: 80
+        allowInsecure: true
+        transport: 'http2'
+      }
+    }
+    template: {
+      containers: [
+        {
+          image: repositoryImage
+          name: name
+          env: envVars
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1
+      }
+    }
+  }
+}
+
+output fqdn string = containerApp.properties.configuration.ingress.fqdn

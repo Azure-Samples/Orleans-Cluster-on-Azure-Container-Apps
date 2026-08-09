@@ -12,6 +12,8 @@ env:
 
   # specify your preferred region
   REGION: southeastasia
+  TF_WORKING_DIR: Azure/NewVersion3/terraform
+  TF_PLUGIN_CACHE_DIR: ~/.terraform.d/plugin-cache
 
   SILO_DOCKER_FILE_PATH: Silo/Dockerfile
   SILO_IMAGE_NAME: silo
@@ -42,6 +44,20 @@ jobs:
       with:
         creds: ${{ secrets.AzureSPN }}
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Restore Terraform plugin cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+        key: ${{ runner.os }}-terraform-${{ hashFiles('Azure/NewVersion3/terraform/.terraform.lock.hcl') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
+
+    - name: Create Terraform plugin cache directory
+      run: mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
     - name: Create resource group
       uses: azure/CLI@v1
       with:
@@ -51,14 +67,21 @@ jobs:
 
           az group create -l ${{ env.REGION }} -n ${{ env.RESOURCE_GROUP_NAME }}
 
-    - name: Creating resources
-      uses: azure/CLI@v1
-      with:
-        inlineScript: >
-          echo "Creating resources"
-          echo "Executing az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file '/github/workspace/Azure/main.bicep' --debug"
+    - name: Terraform plan
+      run: |
+        set -euo pipefail
+        echo "Planning resources with Terraform"
+        terraform -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+        terraform -chdir=${{ env.TF_WORKING_DIR }} plan -input=false -out=tfplan \
+          -var="resource_group_name=${{ env.RESOURCE_GROUP_NAME }}" \
+          -var="location=${{ env.REGION }}"
 
-          az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file 'Azure/main.bicep' --debug
+    - name: Terraform apply
+      if: github.ref == 'refs/heads/deploy'
+      run: |
+        set -euo pipefail
+        echo "Applying Terraform plan"
+        terraform -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan
 
   build:
     runs-on: ubuntu-latest
@@ -74,10 +97,27 @@ jobs:
       with:
         creds: ${{ secrets.AzureSPN }}
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Restore Terraform plugin cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+        key: ${{ runner.os }}-terraform-${{ hashFiles('Azure/NewVersion3/terraform/.terraform.lock.hcl') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
+
+    - name: Create Terraform plugin cache directory
+      run: mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
     - name: Get ACR Login Server
+      id: get_acr_login_server_build
       run: |
-        # Retrieve ACR Login Server value from deployment output
-        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.RESOURCE_GROUP_NAME }} -n main --query properties.outputs.acrLoginServer.value | tr -d '"')
+        # Retrieve ACR Login Server value from Terraform output
+        terraform -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+        ACR_LOGIN_SERVER=$(terraform -chdir=${{ env.TF_WORKING_DIR }} output -raw acr_login_server)
+        echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
         echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
 
     - name: Set up Docker Buildx
@@ -86,46 +126,47 @@ jobs:
     - name: Login to ACR
       run: |
         set -euo pipefail
+        ACR_LOGIN_SERVER="${{ steps.get_acr_login_server_build.outputs.acr_login_server }}"
         # see https://cloudarchitected.com/2021/09/logging-into-acr-in-github-actions/
         # see https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md#calling-post-oauth2exchange-to-get-an-acr-refresh-token
         access_token=$(az account get-access-token --query accessToken -o tsv)
-        refresh_token=$(curl https://${{ env.ACR_LOGIN_SERVER }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.ACR_LOGIN_SERVER }}&access_token=$access_token" | jq -r .refresh_token)
+        refresh_token=$(curl https://$ACR_LOGIN_SERVER/oauth2/exchange -v -d "grant_type=access_token&service=$ACR_LOGIN_SERVER&access_token=$access_token" | jq -r .refresh_token)
         # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
-        docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin ${{ env.ACR_LOGIN_SERVER }} <<< "$refresh_token"
+        docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin $ACR_LOGIN_SERVER <<< "$refresh_token"
 
     - name: Build and push Silo image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ steps.get_acr_login_server_build.outputs.acr_login_server }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.SILO_DOCKER_FILE_PATH }}
     
     - name: Build and push Dashboard image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ steps.get_acr_login_server_build.outputs.acr_login_server }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.DASHBOARD_DOCKER_FILE_PATH }}
 
     - name: Build and push Minimal Client image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ steps.get_acr_login_server_build.outputs.acr_login_server }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.MINIMAL_CLIENT_DOCKER_FILE_PATH }}
 
     - name: Build and push Worker Service Client image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ steps.get_acr_login_server_build.outputs.acr_login_server }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.WORKERSERVICE_CLIENT_DOCKER_FILE_PATH }}
 
     - name: Build and push Scaler image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+        tags: ${{ steps.get_acr_login_server_build.outputs.acr_login_server }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
         file: ${{ env.SCALER_DOCKER_FILE_PATH }}
 
   deploy:
@@ -142,6 +183,20 @@ jobs:
       with:
         creds: ${{ secrets.AzureSPN }}
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Restore Terraform plugin cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+        key: ${{ runner.os }}-terraform-${{ hashFiles('Azure/NewVersion3/terraform/.terraform.lock.hcl') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
+
+    - name: Create Terraform plugin cache directory
+      run: mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
     - name: Installing Container Apps extension
       uses: azure/CLI@v1
       with:
@@ -153,9 +208,12 @@ jobs:
           az extension add --name containerapp --yes
 
     - name: Get ACR Login Server
+      id: get_acr_login_server_deploy
       run: |
-        # Retrieve ACR Login Server value from deployment output
-        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.RESOURCE_GROUP_NAME }} -n main --query properties.outputs.acrLoginServer.value | tr -d '"')
+        # Retrieve ACR Login Server value from Terraform output
+        terraform -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+        ACR_LOGIN_SERVER=$(terraform -chdir=${{ env.TF_WORKING_DIR }} output -raw acr_login_server)
+        echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
         echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
 
     - name: Deploy Silo
@@ -164,9 +222,9 @@ jobs:
         inlineScript: >
           echo "Deploying Silo"
           
-          az containerapp registry set -n silo -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
+          az containerapp registry set -n silo -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}
 
-          az containerapp update -n silo -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n silo -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}/${{ env.SILO_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Dashboard
       uses: azure/CLI@v1
@@ -174,9 +232,9 @@ jobs:
         inlineScript: >
           echo "Deploying Dashboard"
           
-          az containerapp registry set -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
+          az containerapp registry set -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}
 
-          az containerapp update -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n dashboard -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}/${{ env.DASHBOARD_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Minimal API Client
       uses: azure/CLI@v1
@@ -184,9 +242,9 @@ jobs:
         inlineScript: >
           echo "Deploying Minimal API Client"
           
-          az containerapp registry set -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
+          az containerapp registry set -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}
 
-          az containerapp update -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n minimalapiclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}/${{ env.MINIMAL_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Worker Service Client
       uses: azure/CLI@v1
@@ -194,9 +252,9 @@ jobs:
         inlineScript: >
           echo "Deploying Worker Service Client"
           
-          az containerapp registry set -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
+          az containerapp registry set -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}
 
-          az containerapp update -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n workerserviceclient -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}/${{ env.WORKERSERVICE_CLIENT_IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy Scaler
       uses: azure/CLI@v1
@@ -204,9 +262,9 @@ jobs:
         inlineScript: >
           echo "Deploying Scaler"
           
-          az containerapp registry set -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ env.ACR_LOGIN_SERVER }}
+          az containerapp registry set -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} --server ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}
 
-          az containerapp update -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ env.ACR_LOGIN_SERVER }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
+          az containerapp update -n scaler -g ${{ env.RESOURCE_GROUP_NAME }} -i ${{ steps.get_acr_login_server_deploy.outputs.acr_login_server }}/${{ env.SCALER_IMAGE_NAME }}:${{ github.sha }}
 
     - name: logout
       run: >
