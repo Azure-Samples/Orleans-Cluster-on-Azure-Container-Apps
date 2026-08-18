@@ -1,4 +1,5 @@
 using Abstractions;
+using Microsoft.AspNetCore.Mvc;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
@@ -63,15 +64,26 @@ app.MapGet("/providers", async () =>
 {
     var managementGrain = _clusterClient.GetGrain<IManagementGrain>(0);
     var allGrains = await managementGrain.GetDetailedGrainStatistics();
-    var grains = allGrains.Where(x => x.GrainType.Contains("Hello")).Select(x => x.GrainIdentity.PrimaryKeyString).OrderBy(x => x).ToArray();
+    var grains = allGrains.Where(x => x.GrainType.Contains("Hello")).Select(x => x.GrainIdentity.PrimaryKeyLong).OrderBy(x => x).ToArray();
     return Results.Ok(grains);
-}).Produces<string[]>(StatusCodes.Status200OK).WithName("GetHelloProviders");
+}).Produces<long[]>(StatusCodes.Status200OK).WithName("GetHelloProviders");
 
 // gets a hello message from a grain
-app.MapGet("/hello/{grain}", async (string grain) => {
+app.MapGet("/hello/{grain:int}", async (int grain) => {
+    if (grain is < 0 or > 255)
+    {
+        return Results.BadRequest(new ProblemDetails
+        {
+            Title = "Invalid grain key",
+            Detail = "Grain keys must be integers between 0 and 255.",
+            Status = StatusCodes.Status400BadRequest
+        });
+    }
+
     var helloGrain = _clusterClient.GetGrain<IHelloGrain>(grain);
     return Results.Ok(new WelcomeMessage(await helloGrain.SayHello()));
 }).Produces<WelcomeMessage>(StatusCodes.Status200OK)
+  .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
   .WithName("Welcome");
 
 app.Run();
