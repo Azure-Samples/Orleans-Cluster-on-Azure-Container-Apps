@@ -1,5 +1,9 @@
 # Deploy an Orleans Cluster on Azure Container Apps
 
+> [!IMPORTANT]
+> **This sample has moved and this repository will be archived.**
+> Use the actively maintained [Azure Container Apps deployment sample](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureContainerApps) in `dotnet/orleans` instead. See the current [Azure Container Apps deployment guidance](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-container-apps/).
+
 This repository contains an end-to-end sample and tutorial for getting a Microsoft Orleans cluster running on Azure Container Apps. Worker microservices rapidly transmit data to a back-end Orleans cluster for monitoring and storage, emulating thousands of physical devices in the field.
 
 ## What you'll do
