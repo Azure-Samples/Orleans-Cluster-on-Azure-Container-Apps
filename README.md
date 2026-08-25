@@ -45,51 +45,36 @@ You'll need an Azure subscription and a very small set of tools and skills to ge
 
 By the end of this section you'll have a distributed Orleans cluster running in Azure. This setup process consists of two steps, and should take you around 15 minutes. 
 
-1. Use the Azure CLI to create an Azure Service Principal, then store that principal's JSON output to a GitHub secret so the GitHub Actions CI/CD process can log into your Azure subscription and deploy the code.
+1. Configure workload identity federation so GitHub Actions can authenticate to Azure with short-lived OpenID Connect (OIDC) tokens.
 2. Edit the ` deploy.yml` workflow file and push the changes into a new `deploy` branch, triggering GitHub Actions to build the .NET projects into containers and push those containers into a new Azure Container Apps Environment. 
 
 Now you can do some experiments with Orleans in Azure Container Apps!
 
 
 
-### Authenticate to Azure and configure the repository with a secret
+### Authenticate to Azure with OpenID Connect
 
 1. Fork this repository to your own GitHub organization.
-2. Create an Azure Service Principal using the Azure CLI. 
+2. Create a Microsoft Entra application or user-assigned managed identity and grant it the `Contributor` role on the subscription you want to use. It does not need a client secret.
+3. Add a federated identity credential that trusts this repository's `deploy` branch:
+   - Issuer: `https://token.actions.githubusercontent.com`
+   - Subject: `repo:YOUR-GITHUB-OWNER/Orleans-Cluster-on-Azure-Container-Apps:ref:refs/heads/deploy`
+   - Audience: `api://AzureADTokenExchange`
+4. In your fork, open **Settings > Secrets and variables > Actions > Variables** and create these repository variables:
 
-```bash
-$subscriptionId=$(az account show --query id --output tsv)
-az ad sp create-for-rbac --sdk-auth --name OrleansAcaSample --role contributor --scopes /subscriptions/$subscriptionId
-```
+   | Variable | Value |
+   | --- | --- |
+   | `AZURE_CLIENT_ID` | Client ID of the Entra application or managed identity |
+   | `AZURE_TENANT_ID` | Microsoft Entra tenant ID |
+   | `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
 
-3. Copy the JSON written to the screen to your clipboard. 
-
-```json
-{
-  "clientId": "",
-  "clientSecret": "",
-  "subscriptionId": "",
-  "tenantId": "",
-  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com/",
-  "resourceManagerEndpointUrl": "https://brazilus.management.azure.com",
-  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
-  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
-  "galleryEndpointUrl": "https://gallery.azure.com",
-  "managementEndpointUrl": "https://management.core.windows.net"
-}
-```
-
-4. Create a new GitHub secret in your fork of this repository named `AzureSPN`. Paste the JSON returned from the Azure CLI into this new secret. Once you've done this you'll see the secret in your fork of the repository.
-
-   ![The AzureSPN secret in GitHub](docs/media/secrets.png)
-
-> Note: Never save the JSON to disk, for it will enable anyone who obtains this JSON code to create or edit resources in your Azure subscription. 
+For detailed setup instructions, see [Authenticate to Azure from GitHub Actions by OpenID Connect](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect).
 
 
 
 ## Deploy the app using GitHub Actions (in 1 step!)
 
-With your Azure account login stored as a secret in your fork of the repository, you can now provision new Azure resources. During this phase, you'll create these resources in your Azure subscription, simply by creating a small edit in a branch of the repository:
+With workload identity federation configured for your fork, you can now provision new Azure resources. During this phase, you'll create these resources in your Azure subscription, simply by creating a small edit in a branch of the repository:
 
 * An Azure Storage account, to be used for the Orleans Cluster's persistence and clustering capabilities. 
 * An Azure Container Registry instance, which is used to store the container images you'll build using GitHub Actions' CI/CD features.
