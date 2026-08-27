@@ -6,18 +6,16 @@ param envVars array = []
 param registry string
 param registryUsername string
 param minReplicas int = 1
-param maxReplicas int = 1
+param maxReplicas int = 10
+param scalerUrl string
 @secure()
 param registryPassword string
 
-param workloadProfileName string = 'Consumption'
-
-resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
   name: name
   location: location
   properties: {
     managedEnvironmentId: containerAppEnvironmentId
-    workloadProfileName: workloadProfileName
     configuration: {
       activeRevisionsMode: 'multiple'
       secrets: [
@@ -25,7 +23,7 @@ resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
           name: 'container-registry-password'
           value: registryPassword
         }
-      ]
+      ]      
       registries: [
         {
           server: registry
@@ -45,6 +43,20 @@ resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
       scale: {
         minReplicas: minReplicas
         maxReplicas: maxReplicas
+        rules: [
+          {
+            name: 'scaler'
+            custom: {
+              type: 'external'
+              metadata: {
+                scalerAddress: '${scalerUrl}:80'
+                graintype: 'sensortwin'
+                siloNameFilter: 'silo'
+                upperbound: '300'
+              }
+            }
+          }
+        ]
       }
     }
   }

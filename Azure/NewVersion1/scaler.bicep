@@ -5,27 +5,22 @@ param repositoryImage string = 'mcr.microsoft.com/azuredocs/containerapps-hellow
 param envVars array = []
 param registry string
 param registryUsername string
-param minReplicas int = 1
-param maxReplicas int = 1
 @secure()
 param registryPassword string
 
-param workloadProfileName string = 'Consumption'
-
-resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' ={
   name: name
   location: location
-  properties: {
+  properties:{
     managedEnvironmentId: containerAppEnvironmentId
-    workloadProfileName: workloadProfileName
     configuration: {
-      activeRevisionsMode: 'multiple'
+      activeRevisionsMode: 'single'
       secrets: [
         {
           name: 'container-registry-password'
           value: registryPassword
         }
-      ]
+      ]      
       registries: [
         {
           server: registry
@@ -33,6 +28,12 @@ resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
           passwordSecretRef: 'container-registry-password'
         }
       ]
+      ingress: {
+        external: false
+        targetPort: 80
+        allowInsecure: true
+        transport: 'http2'
+      }
     }
     template: {
       containers: [
@@ -43,9 +44,11 @@ resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
         }
       ]
       scale: {
-        minReplicas: minReplicas
-        maxReplicas: maxReplicas
+        minReplicas: 1
+        maxReplicas: 1
       }
     }
   }
 }
+
+output fqdn string = containerApp.properties.configuration.ingress.fqdn

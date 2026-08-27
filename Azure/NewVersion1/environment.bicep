@@ -4,7 +4,7 @@ param location string = resourceGroup().location
 resource logs 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
   name: '${baseName}logs'
   location: location
-  properties: {
+  properties: any({
     retentionInDays: 30
     features: {
       searchVersion: 1
@@ -12,7 +12,7 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
     sku: {
       name: 'PerGB2018'
     }
-  }
+  })
 }
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
@@ -36,18 +36,6 @@ resource env 'Microsoft.App/managedEnvironments@2025-02-02-preview' = {
         sharedKey: logs.listKeys().primarySharedKey
       }
     }
-    workloadProfiles: [
-      {
-        workloadProfileType: 'Consumption'
-        name: 'Consumption'
-      }
-      {
-        workloadProfileType: 'D4'
-        name: 'D4'
-        minimumCount: 0
-        maximumCount: 3
-      }
-    ]
   }
 }
 

@@ -1,6 +1,6 @@
 param location string = resourceGroup().location
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-06-01-preview' = {
+resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
   name: toLower('${uniqueString(resourceGroup().id)}acr')
   location: location
   sku: {
@@ -54,7 +54,6 @@ module scaler 'scaler.bicep' = {
     registryPassword: acr.listCredentials().passwords[0].value
     registryUsername: acr.listCredentials().username
     envVars : shared_config
-    workloadProfileName: 'D4'
   }
 }
 
@@ -69,7 +68,6 @@ module silo 'silo.bicep' = {
     registryUsername: acr.listCredentials().username
     envVars : shared_config
     scalerUrl: scaler.outputs.fqdn
-    workloadProfileName: 'D4'
   }
 }
 
@@ -86,7 +84,6 @@ module dashboard 'dashboard.bicep' = {
     targetIngressPort: 8080
     maxReplicas: 1
     envVars : shared_config
-    workloadProfileName: 'D4'
   }
 }
 
@@ -103,7 +100,6 @@ module minimalapiclient 'minimalapiclient.bicep' = {
     targetIngressPort: 80
     maxReplicas: 1
     envVars : shared_config
-    workloadProfileName: 'D4'
   }
 }
 
@@ -118,7 +114,6 @@ module workerserviceclient 'workerserviceclient.bicep' = {
     registryUsername: acr.listCredentials().username
     maxReplicas: 1
     envVars : shared_config
-    workloadProfileName: 'D4'
   }
 }
 

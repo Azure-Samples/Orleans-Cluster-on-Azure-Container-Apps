@@ -10,14 +10,11 @@ param maxReplicas int = 1
 @secure()
 param registryPassword string
 
-param workloadProfileName string = 'Consumption'
-
-resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' ={
   name: name
   location: location
-  properties: {
+  properties:{
     managedEnvironmentId: containerAppEnvironmentId
-    workloadProfileName: workloadProfileName
     configuration: {
       activeRevisionsMode: 'multiple'
       secrets: [
@@ -25,7 +22,7 @@ resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
           name: 'container-registry-password'
           value: registryPassword
         }
-      ]
+      ]      
       registries: [
         {
           server: registry
